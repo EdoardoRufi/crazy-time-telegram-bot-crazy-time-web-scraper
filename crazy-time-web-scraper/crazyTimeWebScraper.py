@@ -1,3 +1,6 @@
+import os
+import sys
+from datetime import datetime
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -16,6 +19,36 @@ def get_image_url(img_tag):
     return img_tag['src']
 
 
+class Extraction:
+    def __init__(self, bonus, date_time, multipliers):
+        self._bonus = bonus
+        self._date_time = date_time
+        self._multipliers = multipliers
+
+    def __init__(self):
+        pass
+
+
+def printExtraction(extraction_vo):
+    # print the last extracted
+    print('Last bonus extracted: ' + extraction_vo.bonus + ' at ' +
+          extraction_vo.date_time + '. Multipliers: ' + extraction_vo.multipliers)
+
+
+def get_full_date(input_time):
+    # Get today's date
+    today = datetime.today().date()
+
+    # Convert the input time to datetime object
+    time_obj = datetime.strptime(input_time, "%H:%M")
+
+    # Combine today's date with the given time
+    combined_datetime = datetime.combine(today, time_obj.time())
+
+    # Return the combined datetime in ISO format
+    return combined_datetime.isoformat()
+
+
 # Opzioni per il driver di Chrome
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
@@ -25,6 +58,7 @@ time_last_result_found = ""
 
 while True:
     try:
+
         # Inizializza il driver di Chrome
         driver = webdriver.Chrome(options=chrome_options)
 
@@ -59,31 +93,41 @@ while True:
             'https://res.cloudinary.com/casinogrounds/image/upload/f_auto,q_auto,w_0.45,c_scale/gameshows/evolution-gaming/crazy-time/crazy-time-card.png': 'Crazy Time'
         }
 
+        # Iniztialization of result object
+        last_extraction_vo = Extraction()
+
         # Find the table element
         table = soup.find('table', id='spinHistoryTableCrazyTime', class_='table')
 
         # Find the rows within the table
-        rows = table.findAll('tr')
+        row = table.findAll('tr')[1]
 
-        td_last_spin = rows[1].find('img', attrs={'alt': 'Spin Result'})
-        # Extract the text from the td element
+        # LAST BONUS EXTRACTED
+        td_last_spin = row.find('img', attrs={'alt': 'Spin Result'})
         png_last_spin = td_last_spin['src']
+        last_extraction_vo.bonus = risultati.get(png_last_spin)
 
-        last_spin_result_time = rows[1].find('p', class_='dateTime_DateTime__time__HZhlD').text.strip()
+        # DATE_TIME LAST BONUS EXTRACTED
+        last_spin_result_time = row.find('p', class_='dateTime_DateTime__time__HZhlD').text.strip()
+        last_extraction_vo.date_time = get_full_date(last_spin_result_time)
         # Extract the time from the td element
 
+        # LAST BONUS MULTIPLIERS valorize the json here
+        column = row.findAll('td')[4]
+        last_extraction_vo.multipliers = column.text.strip()
+
         if time_last_result_found == last_spin_result_time:
-            print("Still nothing new found")
+            print("Nothing new found")
         else:
-            # print the last extracted
-            print('Last bonus extracted: ' + risultati.get(png_last_spin) + ' at ' + last_spin_result_time)
+            # send result object to mqtt
+            printExtraction(last_extraction_vo)
             time_last_result_found = last_spin_result_time
-
-
-
 
     except Exception as e:
         print(f"Si è verificato un errore: {str(e)}")
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
 
     # Attendi 5 secondi prima di ripetere l'azione
-    time.sleep(5)
+    time.sleep(20)
