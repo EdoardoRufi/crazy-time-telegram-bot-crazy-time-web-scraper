@@ -8,6 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import json
+import paho.mqtt.client as mqtt
+
 
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -30,10 +32,31 @@ class Extraction:
 
 
 def printExtraction(extraction_vo):
-    # print the last extracted
+    # print the last extracted 
     print('Last bonus extracted: ' + extraction_vo.bonus + ' at ' +
           extraction_vo.date_time + '. Multipliers: ' + extraction_vo.multipliers)
 
+
+def publishToMqtt(extraction_vo):
+    # MQTT broker configuration
+    broker = 'localhost'  # Update with the IP or hostname of your MQTT broker
+    port = 1883  # MQTT broker port
+    topic = 'Extractions'  # MQTT topic to publish to
+
+    # Convert JSON data to a string
+    message = json.dumps(extraction_vo.__dict__)
+
+    # Create an MQTT client
+    client = mqtt.Client()
+
+    # Connect to the MQTT broker
+    client.connect(broker, port)
+
+    # Publish the message to the MQTT topic
+    client.publish(topic, message)
+
+    # Disconnect from the MQTT broker
+    client.disconnect()
 
 def get_full_date(input_time):
     # Get today's date
@@ -120,6 +143,7 @@ while True:
             print("Nothing new found")
         else:
             # send result object to mqtt
+            publishToMqtt(last_extraction_vo)
             printExtraction(last_extraction_vo)
             time_last_result_found = last_spin_result_time
 

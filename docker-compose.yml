@@ -1,0 +1,25 @@
+version: '3'
+services:
+  mqtt:
+    image: eclipse-mosquitto
+    container_name: mqtt
+    ports:
+      - 1883:1883
+      - 9001:9001
+    environment:
+      - MQTT_TOPICS=Extractions
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      #- ./data:/mosquitto/data
+      #- ./log:/mosquitto/log
+    #command: ["mosquitto", "-c", "/mosquitto/config/mosquitto.conf", "-d"]
+    #command: >
+    #  sh -c 'mkdir -p /var/log/mosquitto &&
+    #  touch /var/log/mosquitto/mosquitto.log &&
+    #  mosquitto -c /mosquitto/config/mosquitto.conf -d > /var/log/mosquitto/mosquitto.log 2>&1'
+
+  mqtt-explorer:
+    image: mqtt-explorer
+    container_name: mqtt-explorer
+    ports:
+      - 8080:8080
