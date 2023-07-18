@@ -1,0 +1,15 @@
+server.port: ${SERVER_PORT:8080}
+
+# Management
+management:
+    endpoints:
+      web:
+        exposure:
+          include: "*"
+
+mqtt:
+  brokerUrl: tcp://localhost:1883
+  lastExtraction:
+    topicName: Extractions
+    scheduledJobRate: 10000 # milliseconds of scheduled job for retrieving the data
+

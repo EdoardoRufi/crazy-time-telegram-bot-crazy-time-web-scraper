@@ -1,0 +1,14 @@
+# Default ignored files
+.idea
+target
+
+# Maven
+target/
+dist/
+
+# JetBrains IDE
+.idea/
+*.iml
+
+log/
+data/

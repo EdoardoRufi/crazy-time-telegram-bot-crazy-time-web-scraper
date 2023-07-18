@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 import json
 import paho.mqtt.client as mqtt
 
-
 from selenium.webdriver.support.wait import WebDriverWait
 
 
@@ -57,6 +56,7 @@ def publishToMqtt(extraction_vo):
 
     # Disconnect from the MQTT broker
     client.disconnect()
+
 
 def get_full_date(input_time):
     # Get today's date
